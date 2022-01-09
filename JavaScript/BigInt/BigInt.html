@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Javascript - BigInt</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script
+            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+            crossorigin="anonymous"
+        ></script>
+        <link
+            rel="stylesheet"
+            href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.min.css"
+        />
+
+        <style>
+            /* https://codersblock.com/blog/what-can-you-put-in-a-css-variable/ */
+            :root {
+                --length: 600px;
+                --bgcolor: antiquewhite;
+            }
+            @font-face {
+                font-family: "Source Sans Pro";
+                /* https://www.fontsquirrel.com/fonts/source-sans-pro */
+                src: url("source-sans-pro/SourceSansPro-Regular.otf")
+                    format("opentype");
+                font-weight: 400;
+                font-style: normal;
+            }
+            .eqnFont {
+                font-family: "Source Sans Pro";
+                font-weight: bold;
+                margin: 2em 0 2em 0;
+                width: auto;
+                display: inline-block;
+            }
+            mark {
+                background-color: var(--bgcolor);
+                color: green;
+            }
+            body {
+                background-color: lightgray;
+            }
+            .container_bi {
+                width: var(--length);
+                border: 4px solid brown;
+                margin: 0 auto;
+                padding: 1em;
+                text-align: justify;
+                background-color: var(--bgcolor);
+                cursor: move;
+            }
+            .centered {
+                text-align: center;
+            }
+            label {
+                display: block;
+                text-align: center;
+                width: var(--length);
+            }
+            span.subsup {
+                position: relative;
+            }
+            span.subsup sub {
+                position: absolute;
+                left: 0em;
+                bottom: -0.4em;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container_bi">
+            <p class="centered">
+                Every Number in Javascript is float
+                <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>
+            </p>
+            <p class="centered">
+                <mark>i</mark> can go beyond 40 (53 bits) by using
+                <a
+                    href="https://www.geeksforgeeks.org/javascript-bigint-complete-reference/?ref=rp"
+                >
+                    BigInt.
+                </a>
+            </p>
+            <p class="centered">
+                The smallest integer divisible by all integers in the range[1,
+                <mark>i</mark>+1=<span id="i1"> </span>) is:
+            </p>
+            <p class="eqnFont">
+                LCM(<mark><span id="i">i</span></mark
+                >) =
+                <span id="prod"></span>
+            </p>
+
+            <form id="form" class="centered" method="post">
+                <label for="n"><mark>i </mark><span id="range"></span></label>
+                <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value="40"
+                    step="1"
+                    id="n"
+                    name="n"
+                    style="width: var(--length)"
+                    oninput="getFactors()"
+                />
+                <span style="float: left"> 1 </span>
+                <span style="float: right"> 100 </span>
+                <br /><br />
+            </form>
+
+            <script>
+                function gcd(x, y)
+                {
+                    while (x)
+                    {
+                        [x, y] = [y % x, x];
+                    }
+                    return y;
+                }
+
+                var lcm = (x, y) => (x * y) / gcd(x, y);
+
+                function LCM(n)
+                {
+                    const arr = Array.from(Array(n), (_, index) => BigInt(index + 1));
+                    return arr.reduce(lcm);
+                }
+
+                function isPrime(n)
+                {
+                    var ListOfPrimes = new Array(2,3,5,7,11,13,17,19,23,29);
+                    for(let prime of ListOfPrimes)
+                    {
+                        if(n % prime == 0 && n != prime)
+                            return false;
+                    }
+
+                    return true;
+                }
+
+                function factorize(n)
+                {
+                    var ListOfPrimes = new Array(2,3,5,7,11,13,17,19,23,29);
+                    var primes = new Array();
+                    var index = 0;
+                    var candidate = ListOfPrimes[index];
+
+                    if(isPrime(n))
+                    {
+                        primes.push(n);
+                        return primes; 
+                    }
+
+                    while(candidate < Math.sqrt(n) + 1)
+                    {
+                        if(n % candidate === 0)
+                        {
+                            n = Math.floor(n / candidate);
+                            primes.push(candidate);
+                            Array.prototype.push.apply(primes,factorize(n));
+                            break;
+                        }
+                        index += 1;
+                        if(index < 10)
+                            candidate = ListOfPrimes[index];
+                        else
+                            candidate += 2;
+                    }
+                    return primes
+                }
+
+                function getValuesPrimes(f)
+                {
+                    var values = new Map();
+
+                    for(let value of f)
+                    {
+                        if(values.has(value))
+                        {
+                            let n = values.get(value);
+                            values.set(value,n+1);  
+                        }
+                        else
+                            values.set(value,1); 
+                    }
+
+                    return values;
+                }
+
+                function formatExpressions(f)
+                {
+                    var expReturn = '';
+
+                    var values = getValuesPrimes(f);
+
+                    // for(let value of f)
+                    // {
+                    //     expReturn = expReturn.concat(`${value}<sup>1</sup> X `);
+                    // }
+
+                    let i = 1;
+                    for(var value of values)
+                    {
+                        if((i == values.size))
+                            expReturn = expReturn.concat(`${value[0]}<sup>${value[1]}</sup> `);
+                        else
+                            expReturn = expReturn.concat(`${value[0]}<sup>${value[1]}</sup> x `);
+                        i += 1;
+                    }
+
+                    return expReturn;
+                }
+
+                function getFactors() {
+                    let n = $("#n")[0];
+                    let m = $("mark");
+                    if (n) {
+                        // using javascript BigInt code to avoid the 64-bit limit
+                        let factors = LCM(n.valueAsNumber).toString();
+                        let mcolor =
+                            factors > Number.MAX_SAFE_INTEGER ? "red" : "green";
+                        let bits = Math.trunc(Math.log2(factors)) + 1;
+                        $("#range").html(`(${bits.toString()} bits)`);
+                        for (i of m) {
+                            i.style.color = mcolor;
+                        }
+                        var f = factorize(factors);
+                        var exp = formatExpressions(f);
+                        $("#prod").html(`${factors} = ${exp}`);
+
+                        $("#i1").html((n.valueAsNumber + 1).toString());
+                        $("#i").html(n.valueAsNumber.toString());
+                    }
+                }
+                dragAndSave(".container_bi");
+                getFactors();
+            </script>
+        </div>
+    </body>
+</html>

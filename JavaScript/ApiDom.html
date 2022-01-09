@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Javascript - Arrays</title>
+    </head>
+
+    <body>
+        <p>Click the button to display a String version of some arrays.</p>
+
+        <button onclick="createNodes()">Try it</button>
+
+        <div id="div1">
+            <p
+                id="teams"
+                style="
+                    text-align: center;
+                    font-family: cursive;
+                    font-size: larger;
+                "
+            ></p>
+            <p id="tweets"></p>
+        </div>
+
+        <script type="text/javascript">
+            /** Interleaves two arrays.
+             *
+             *  @param {Array<number>} arr1 an array of integers.
+             *  @param {Array<string>} arr2 an array of strings.
+             *  @returns {Array<string>} a new array.
+             *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
+             *  @see https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+             *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
+             *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
+             *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/keys
+             */
+            function interleave(arr1, arr2) {
+                return arr1.reduce(
+                    (accumulator, currentValue, currentIndex) => {
+                        return arr2[currentIndex] == undefined
+                            ? accumulator // arr2 is over.
+                            : accumulator.concat(
+                                  `${currentValue.toString()} - ${
+                                      arr2[currentIndex]
+                                  }`
+                              );
+                    },
+                    []
+                );
+            }
+
+            /**
+             * Creates some nodes using the DOM API.
+             *
+             * In JavaScript, functions are first-class objects,
+             * because they can have properties and methods, just like any other object.
+             * What distinguishes them from other objects is that functions can be called.
+             * In brief, they are Function objects.
+             *
+             * @param {string} divp parent element.
+             *
+             * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
+             * @see https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model
+             */
+            function createNodes() {
+                var indices = [...Array(10).keys()]; // spread operator
+
+                var teams = new Array();
+
+                teams[0] = "Fluminense";
+
+                teams[1] = "Flamengo";
+
+                if (typeof createNodes.counter == "undefined") {
+                    // No counter yet? ... perform the initialization
+                    createNodes.counter = 0;
+                } else {
+                    ++createNodes.counter;
+                }
+
+                var x = teams.join(", ").toString();
+
+                document.getElementById(
+                    "teams"
+                ).innerHTML = `&lt;div1&gt;\n\nArray teams = [${x}]`;
+
+                var tweets = [
+                    "Joe Biden got 306 delegates!",
+                    "Donald Trump got 232 delegates!",
+                ];
+
+                tweets.push("Game over and go back to work!");
+
+                let i = createNodes.counter % tweets.length;
+
+                var result = interleave(indices, tweets);
+                result[i] = `<mark>${result[i]}</mark>`;
+
+                document.getElementById(
+                    "tweets"
+                ).innerHTML = `Array tweets = <br>${result
+                    .join("<br>")
+                    .toString()}`;
+
+                // replace 1 element staring at i
+                tweets.splice(i, 1, "Vice President!", "Kamala Harris");
+
+                console.log(tweets);
+
+                result = interleave(indices, tweets);
+
+                // ----- create paragraph nodes with javascript -----
+
+                var para = document.createElement("p"); // Create a <p> element
+
+                // Create a text node
+                var node = document.createTextNode(
+                    `tweets.splice_${
+                        createNodes.counter
+                    } (${i},1,'Vice President!', 'Kamala Harris') =\n${result
+                        .join("\n")
+                        .toString()}`
+                );
+
+                para.appendChild(node); // Append node to <p>
+                var element = document.getElementById("div1");
+                element.appendChild(para); // Append <p> to <div> with id="div1"
+                document.body.style = "white-space: pre;";
+
+                element.style.background = "lightgray";
+                element.style.border = "thick solid #0000FF";
+                element.style.width = "400px";
+                element.style.paddingLeft = "10px";
+
+                // set a unique id
+                let paraid = `para${createNodes.counter.toString()}`;
+                para.setAttribute("id", paraid);
+
+                para.style.border = "thick solid red";
+                para.style.width = "370px";
+                para.style.paddingLeft = "10px";
+                para.style.fontFamily = "Times New Roman";
+                para.style.background = "antiquewhite";
+
+                // check that the new id has been created
+                console.assert(document.getElementById(paraid) === para);
+
+                //Criando a funcionalidade de deixar o item deseparecer caso seja clicado
+                document.getElementById(paraid).onclick = function() {             
+                document.getElementById(paraid).style.display = "none";}
+
+                // Criando a funcionalidade de fazer o item aparecer caso seja pressionado ctrl + escape
+                window.onkeydown = function (event) {
+                if (event.ctrlKey && event.key === "Escape") {
+                    document.getElementById(paraid).style.display = "block";
+                }
+            }
+            }
+
+            document.writeln(
+                "\nA new <span style='color: red'>Node</span> will be created..."
+            );
+            document.write("to hold the spliced output.");
+        </script>
+    </body>
+</html>
