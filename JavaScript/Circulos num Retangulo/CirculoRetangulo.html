@@ -51,6 +51,11 @@
             cursor: move;
         }
 
+        #canvas
+        {
+            border: 2px solid yellow;
+        }
+
         .centered {
             text-align: center;
         }
@@ -76,7 +81,9 @@
 <body>
     <div class="container_bi">
         <form id="form" class="centered" method="post">
-            <label for="n"><mark>i </mark><span id="range"></span></label>
+            <canvas id="canvas">
+            </canvas>
+            <label for="n"><mark id="val">i </mark><span id="range"></span></label>
             <input
                 type="range"
                 min="1"
@@ -95,33 +102,26 @@
 
         <script src="./src/LCG.js"></script>
         <script src="./src/cookies.js"></script>
-        <script src="./src/bitset.js"></script>
-        <script src="./src/cookies.js"></script>
-        <script src="./src/gcd.js"></script>
+        <script src="./src/Canvas.js"></script>
         <script type="module">
-            // import { factorization, bitLength } from "./src/factorize.js";
-            // import { LCM } from "./src/gcd.js";
             window.getFactors = getFactors;
+
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            var w = Number(urlParams.get("w"));
+            var h = Number(urlParams.get("h"));
+
+            $('#canvas').width = w;
+            $('#canvas').height = h;
 
             function getFactors() {
                 let n = $("#n")[0];
                 let m = $("mark");
-                if (n) {
-                    // using javascript BigInt code to avoid the 53-bit limit
-                    let factors = LCM(n.valueAsNumber);
-                    let mcolor =
-                        factors > Number.MAX_SAFE_INTEGER ? "red" : "green";
-                    let bits = bitLength(factors);
-                    $("#range").html(`(${bits.toString()} bits)`);
-                    for (i of m) {
-                        i.style.color = mcolor;
-                    }
-                    $("#prod").html(
-                        `${factors} = ${factorization(factors)}`
-                    );
-                    $("#i1").html((n.valueAsNumber + 1).toString());
-                    $("#i").html(n.valueAsNumber.toString());
-                }
+                var ctx = document.getElementById("canvas");
+
+                document.getElementById("val").innerHTML = String(n.value);
+                let value = square(ctx);
+
                 setCookie("slider", String(n.value), 365);
             }
             dragAndSave(".container_bi");
