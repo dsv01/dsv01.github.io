@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <!--Definição de configurações-->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desenho Procedural em SVG</title>
+
+    <!--Importações para esta aplicação-->
+    <script type="text/javascript" src="src/jquery.min.js"></script>
+    <script src="src/jquery-ui/jquery-ui.js"></script>
+    <link href="src/jquery-ui/jquery-ui.css" rel="stylesheet" />
+    <!-- <script type="module" src="src/LCG.js"></script> -->
+
+    <!--Estilização interna da aplicação-->
+    <style type="text/css">
+        /*Estilizações gerais da aplicação*/
+        body
+        {
+            background-color: aquamarine;
+        }
+
+        /*Estilizações do quadro svg*/
+        svg
+        {
+            border: 5px solid green;
+            flex-grow: 1;
+        }
+
+        /*Estilização para os inputs da aplicação*/
+        input
+        {
+            display: block;
+        }
+
+        /*Estilização das labels da aplicação*/
+        label
+        {
+            display: block;
+            float: left;
+        }
+
+        /*Estilizações do conteiner com os quadrados e configurações*/
+        #interface
+        {
+            width: 500px;
+            height: 500px;
+            border: 5px solid blue;
+            background-color: white;
+            display: flex;
+            flex-flow: column;
+        }
+
+        /*Estilizações do painel de configurações*/
+        #painel-configuracoes
+        {
+            border: 5px solid yellowgreen;
+            text-align: center;
+            padding: 5px;
+            flex-grow: 0;
+        }
+
+        /*Estilização para radio button de pontos fixos*/
+        #pontos-fixos input
+        {
+            display: inline-block;
+        }
+
+        /*Estilização para radio button de pontos fixos*/
+        #pontos-fixos label
+        {
+            display: inline-block;
+            float: none;
+        }
+
+        /*Estilizações dos objetos "arrastáveis"*/
+        .draggable
+        {
+        }
+    </style>
+</head>
+<body>
+
+    <!--Interface onde vai entrar a caixa dos quadrados (svg) e a tabela de configurações-->
+    <div id="interface" class="draggable">
+        <!-- Caixa onde os quadrados vão aparecer -->
+        <svg id="svg">
+            <g transform="translate(200,200)">
+                <rect fill="red" x="0" y="0" width="50" height="50" opacity="0.7"></rect>
+            </g>
+        </svg>
+
+        <!-- Painel de configurações da aplicação -->
+        <div id="painel-configuracoes">
+
+            <!-- Range para o campo de número de quadrados -->
+            <label for="N">Número de Quadrados<span id="span-N"></span></label>
+            <input 
+            id="quantidade-quadrados" 
+            type="range"
+            min="0"
+            max="10"
+            step="1"
+            value="1"
+            name="N"
+            oninput="drawSquares()">
+
+            <!-- Range para o campo de proporção dos quadrados -->
+            <label for="Ratio">Proporção dos Quadrados<span id="span-ratio"></span></label>
+            <input 
+            type="range"
+            id="proporcao-quadrados"
+            min="0"
+            max="1"
+            step="0.1"
+            value="0"
+            name="Ratio"
+            oninput="drawSquares()">
+
+            <div id="pontos-fixos">
+                <!-- Radio button para obter o número de pontos fixos -->
+                <p>Pontos Fixos</p>
+
+                <!-- Opção 0 -->
+                <input 
+                type="radio"
+                id="zero"
+                name="pontos-fixos"
+                value="zero"
+                checked
+                onclick="drawSquares()"
+                >
+                <label for="zero">0</label>
+
+                <!-- Opção 1 -->
+                <input 
+                type="radio"
+                id="um"
+                name="pontos-fixos"
+                value="um"
+                onclick="drawSquares()"
+                >
+                <label for="um">1</label>
+
+                <!-- Opção 2 -->
+                <input 
+                type="radio"
+                id="dois"
+                name="pontos-fixos"
+                value="dois"
+                onclick="drawSquares()"
+                >
+                <label for="dois">2</label>
+
+                <!-- Opção 3 -->
+                <input 
+                type="radio"
+                id="tres"
+                name="pontos-fixos"
+                value="tres"
+                onclick="drawSquares()"
+                >
+                <label for="tres">3</label>
+            </div>
+        </div>
+    </div>
+    
+    <!--Código javascript da aplicação-->
+    <script type="text/javascript">
+
+        //Definindo a função de arrastar e soltar
+        function dragAndSave(id) {
+            // mobile devices have trouble to drag.
+            if (screen.width <= 800) return;
+            // get positions in localStorage
+            var positions = JSON.parse(localStorage.positions || "{}");
+            if (positions[id]) $(id).css(positions[id]);
+            // save the position of the draggable element into localStorage
+            $(id).draggable({
+                scroll: true, // If set to true, container auto-scrolls while dragging.
+                // Triggered when dragging stops.
+                stop: function (event, ui) {
+                    let positions = JSON.parse(localStorage.positions || "{}");
+                    positions[id] = ui.position; // { top, left } object.
+                    localStorage.positions = JSON.stringify(positions);
+                },
+            });
+            // reset localStorage
+            window.onkeydown = function (event) {
+                if (event.key === "Escape" || event.key === "e") {
+                    if (event.metaKey || event.ctrlKey) {
+                        localStorage.clear();
+                        alert("Local storage has been cleared");
+                    }
+                } else if (event.key == "b") {
+                    window.location.href = "/cwdc";
+                } else if (event.key == "B") {
+                    let path = window.location.pathname;
+                    window.location.href = path.split("/", 3).join("/");
+                }
+            };
+        }
+
+        //Função para realizar o processamento dos quadrados exigidos na aplicação
+        function drawSquares()
+        {
+            //Setando os fatores com base nos valores inseridos pelo usuário
+            const translationFactor = 50;
+            const numberSquare = $("#quantidade-quadrados").val();
+            const fixedPoint = $("input[name=pontos-fixos]:checked").val();
+            const ratio = $("#proporcao-quadrados").val();
+            let escalationFactor = ratio <= 0.5? (Math.sqrt(2) - 1) * ratio + 1: (Math.sqrt(2) - 1) * (1 - ratio) + 1;
+            let rotationFactor = 90 * ratio;
+
+            //Setando nas labels os valores dos inputs
+            $("#span-N").html(" " + numberSquare);
+            $("#span-ratio").html(" " + $("#proporcao-quadrados").val());
+
+            //Criando os quadrados que vão entrar no svg
+            let svgContent = buildSquares(translationFactor,numberSquare,fixedPoint,escalationFactor,rotationFactor); 
+            $("#svg").html(svgContent);
+        }
+
+        //Função para construir os quadrados no formato exigido pela aplicação
+        function buildSquares(translationFactor,numberSquare,fixedPoint,escalationFactor,rotationFactor)
+        {
+            //Definições de variáveis para auxiliar no cálculo
+            const colors = ["yellow", "blue", "green", "red"];
+            //Conteudo construido para a tag svg
+            let content = "";
+
+            //Caso do ponto fixo zero
+            if(fixedPoint === "zero")
+            {
+                for(let index = numberSquare; index > 0; index--)
+                {
+                    let color = colors[index % colors.length];
+
+                    content = `<g transform="scale(${escalationFactor}) rotate(${rotationFactor})">
+                        <rect fill="${color}" x="0" y="0" width="50" height="50" opacity="0.7"></rect>` +
+                        content + `</g>`;
+                }
+            }
+
+            //Caso do ponto fixo um
+            else if(fixedPoint === "um")
+            {
+                for(let index = numberSquare; index > 0; index--)
+                {
+                    let color = colors[index % colors.length];
+
+                    content = `<g transform="translate(${translationFactor},0) scale(${escalationFactor}) rotate(${rotationFactor})">
+                        <rect fill="${color}" x="0" y="0" width="50" height="50" opacity="0.7"></rect>` +
+                        content + `</g>`;
+                }
+            }
+
+            //Caso do ponto fixo dois
+            else if(fixedPoint === "dois")
+            {
+                for(let index = numberSquare; index > 0; index--)
+                {
+                    let color = colors[index % colors.length];
+
+                    content = `<g transform="translate(0,${translationFactor}) scale(${escalationFactor}) rotate(${rotationFactor})">
+                        <rect fill="${color}" x="0" y="0" width="50" height="50" opacity="0.7"></rect>` +
+                        content + `</g>`;
+                }
+            }
+
+            //Caso do ponto fixo três
+            else if(fixedPoint === "tres")
+            {
+                for(let index = numberSquare; index > 0; index--)
+                {
+                    let color = colors[index % colors.length];
+
+                    content = `<g transform="translate(${translationFactor},${translationFactor}) scale(${escalationFactor}) rotate(${rotationFactor})">
+                        <rect fill="${color}" x="0" y="0" width="50" height="50" opacity="0.7"></rect>` +
+                        content + `</g>`;
+                }
+            }
+
+            //Trabalhando o quadrado inicial
+            content = `<g transform="translate(200,200)">
+                <rect fill="red" x="0" y="0" width="50" height="50" opacity="0.7"></rect>` +
+                content;
+
+            //Retornando conteudo
+            return content;
+        }
+
+        //Configurando classe arrastável
+        dragAndSave(".draggable");
+
+    </script>
+</body>
+</html>
