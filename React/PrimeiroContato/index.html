@@ -89,7 +89,7 @@
       //=========================================================
       // Componente Button
       //=========================================================
-      function Button({operation, counter, onClickLocal, onClickGlobal})
+      function Button({operation, counter, onClickLocal, onClickGlobal, visible})
       {
         if(operation == "increment")
         {
@@ -142,8 +142,8 @@
         {
           return (
           <div>
-            <button className="btn btn-danger">
-              <i className="bi bi-trash-fill me-2"></i>
+            <button className="btn btn-danger" onClick={visible}>
+              <span className="fa fa-trash"></span>
             </button>
           </div>
         )
@@ -172,15 +172,16 @@
 
         function changeVisible()
         {
-          setIsVisible(!isVisible);
+          setIsVisible(!isVisible)
         }
-        // <Button operation="delete" counter={counter} generalCounter={generalCounter} setter={setCounter} generalSetter={generalSetter}/>
+        
 
         return(
           <div className="containerButtons">
-              <Label value={counter}/>
-              <Button operation="increment" counter={counter} onClickLocal={incrementCounter} onClickGlobal={incrementGeneralSetter}/>
-              <Button operation="decrement" counter={counter} onClickLocal={decrementCounter} onClickGlobal={decrementGeneralSetter}/>
+              {isVisible && <Label value={counter}/>}
+              {isVisible && <Button operation="increment" counter={counter} onClickLocal={incrementCounter} onClickGlobal={incrementGeneralSetter}/>}
+              {isVisible && <Button operation="decrement" counter={counter} onClickLocal={decrementCounter} onClickGlobal={decrementGeneralSetter}/>}
+              {isVisible && <Button operation="visible" visible={changeVisible}/>}
           </div>
         )
       }
